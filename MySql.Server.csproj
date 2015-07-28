@@ -82,7 +82,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)Mysql.Server\nugetPackager\NuGet.exe pack $(SolutionDir)Mysql.Server\nugetPackager\MySql.Server.nuspec</PostBuildEvent>
+    <PostBuildEvent>if $(ConfigurationName) == Release C:\Nuget\NuGet.exe pack $(ProjectDir)MySql.Server.csproj -Prop Configuration=Release</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
