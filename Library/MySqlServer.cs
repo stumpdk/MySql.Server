@@ -94,7 +94,26 @@ namespace MySql.Server
                 }
                 catch(Exception)
                 {
-                    System.Console.WriteLine("Could not create or delete directory: ", checkDir);
+                    System.Console.WriteLine("Could not create or delete directory: " + checkDir.FullName);
+                }
+            }
+        }
+
+        private void removeDirs()
+        {
+            string[] dirs = { this._mysqlDirectory, this._dataRootDirectory, this._dataDirectory };
+
+            foreach (string dir in dirs)
+            {
+                DirectoryInfo checkDir = new DirectoryInfo(dir);
+                try
+                {
+                    if (checkDir.Exists)
+                        checkDir.Delete(true);
+                }
+                catch (Exception)
+                {
+                    System.Console.WriteLine("Could not delete directory: ", checkDir.FullName);
                 }
             }
         }
@@ -143,7 +162,7 @@ namespace MySql.Server
                 "--datadir=" + "\"" + this._dataDirectory + "\"",
                 "--skip-grant-tables",
                 "--enable-named-pipe",
-                "--skip-networking",
+               // "--skip-networking",
                 "--innodb_fast_shutdown=2",
                 "--innodb_doublewrite=OFF",
                 "--innodb_log_file_size=1048576",
@@ -176,10 +195,12 @@ namespace MySql.Server
             bool connected = false;
             int waitTime = 0;
 
+            Exception lastException = new Exception();
+
             while (!connected)
             {
                 if (waitTime > 10000)
-                    throw new Exception("Server could not be started");
+                    throw new Exception("Server could not be started.", lastException);
 
                 waitTime = waitTime + 500;
 
@@ -192,8 +213,9 @@ namespace MySql.Server
 
                     System.Console.WriteLine("Database connection established after " + waitTime.ToString() + " miliseconds");
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    lastException = e;
                     Thread.Sleep(500);
                     connected = false;
                 }
@@ -271,6 +293,7 @@ namespace MySql.Server
                 this._process.Dispose();
                 this._process = null;
                 this.killProcesses();
+                this.removeDirs();
             }
             catch (Exception e)
             {
