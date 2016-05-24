@@ -3,6 +3,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.IO;
 using MySql.Server;
+using System.Diagnostics;
 
 namespace Example
 {
@@ -24,15 +25,6 @@ namespace Example
             dbServer.ExecuteNonQuery("INSERT INTO testTable (`value`) VALUES ('some value')");
         }
 
-        //The server is shutdown as the test ends
-        [AssemblyCleanup]
-        public static void Cleanup()
-        {
-            MySqlServer dbServer = MySqlServer.Instance;
-
-            dbServer.ShutDown();
-        }
-
         //Concrete test. Writes data and reads it again.
         [TestMethod]
         public void TestMethod()
@@ -47,6 +39,15 @@ namespace Example
 
                 Assert.AreEqual("test value", reader.GetString("value"), "Inserted and read string should match");
             }
+        }
+
+        [TestMethod]
+        public void TestKillProcess()
+        {
+            MySqlServer database = MySqlServer.Instance;
+
+            database.ShutDown();
+            Assert.AreEqual(0, Process.GetProcessesByName("mysqld").Length, "should kill the running process");
         }
     }
 }

@@ -54,8 +54,6 @@ namespace MySql.Server
             this._dataRootDirectory = this._mysqlDirectory + "\\data";
             this._dataDirectory = this._dataRootDirectory + "\\" + Guid.NewGuid() + "";
 
-            this.killProcesses();
-
             this.createDirs();
 
             this.extractMySqlFiles();
@@ -63,22 +61,6 @@ namespace MySql.Server
             this._conStrFac = conStrFac;
         }
 
-    /*    private void removeDirs()
-        {
-            //Removing any previous data directories
-            new DirectoryInfo(this._dataRootDirectory).GetDirectories().ToList().ForEach(delegate(DirectoryInfo dir)
-            {
-                try
-                {
-                    dir.Delete(true);
-                }
-                catch (Exception)
-                {
-                    System.Console.WriteLine("Could not delete data directory" + dir.FullName);
-                }
-            });
-        }
-        */
         private void createDirs()
         {
             string[] dirs = { this._mysqlDirectory, this._dataRootDirectory, this._dataDirectory };
@@ -132,26 +114,10 @@ namespace MySql.Server
                 throw;    
             }
         }
-
-        private void killProcesses()
-        {
-            //Killing all processes with the name mysqld.exe
-            foreach (var process in Process.GetProcessesByName("mysqld"))
-            {
-                try
-                {
-                    process.Kill();
-                }
-                catch (Exception)
-                {
-                    System.Console.WriteLine("Tried to kill already existing mysqld process without success");
-                }
-            }
-        }
-
+  
         public void StartServer()
         {
-            _process = new Process();
+            this._process = new Process();
 
             var arguments = new[]
             {
@@ -276,6 +242,9 @@ namespace MySql.Server
 
         public void CloseConnection()
         {
+            if (this._process.HasExited)
+                throw new Exception("´The connection cannot be closed: The server is not running");
+
             if(this._myConnection.State != System.Data.ConnectionState.Closed)
                 this._myConnection.Close();
         }
@@ -288,11 +257,11 @@ namespace MySql.Server
                 if (!this._process.HasExited)
                 {
                     this._process.Kill();
+                    this._process.WaitForExit();
                 }
                 //System.Console.WriteLine("Process killed");
                 this._process.Dispose();
                 this._process = null;
-                this.killProcesses();
                 this.removeDirs();
             }
             catch (Exception e)
