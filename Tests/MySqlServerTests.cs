@@ -23,6 +23,15 @@ namespace MySqlServerTests
         }
 
         [TestMethod]
+        public void StartServerOnSpecifiedPort()
+        {
+            MySqlServer server = MySqlServer.Instance;
+            server.StartServer(3366);
+            MySqlHelper.ExecuteNonQuery(server.GetConnectionString(), "CREATE DATABASE testserver; USE testserver;");
+            server.ShutDown();
+        }
+
+        [TestMethod]
         public void MultipleProcessesInARow()
         {
             var dbServer = MySqlServer.Instance;

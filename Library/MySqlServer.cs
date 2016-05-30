@@ -70,7 +70,7 @@ namespace MySql.Server
         /// <returns>A connection string for the server</returns>
         public string GetConnectionString()
         {
-            return String.Format("Server=127.0.0.1;Protocol=pipe;");
+            return string.Format("Server=127.0.0.1;Port={0};Protocol=pipe;", _serverPort.ToString());
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace MySql.Server
         /// <returns>A connection string for the server and database</returns>
         public string GetConnectionString(string databaseName)
         {
-            return String.Format("Server=127.0.0.1;Protocol=pipe;Database={0};", databaseName);
+            return string.Format("Server=127.0.0.1;Port={0};Protocol=pipe;Database={1};", _serverPort.ToString(), databaseName);
         }
 
         /// <summary>
