@@ -10,44 +10,59 @@ namespace Example
     [TestClass]
     public class Example
     {
-        //Starting the MySql server. Here it is done in the AssemblyInitialize method for performance purposes.
-        //It could also be restarted in every test using [TestInitialize] attribute
-        [AssemblyInitialize]
-        public static void Initialize(TestContext context)
+        private static readonly string _testDatabaseName = "testserver";
+
+        /// <summary>
+        /// Example of a simple test: Start a server, create a database and add data to it
+        /// </summary>
+        [TestMethod]
+        public void TestMethod()
         {
             MySqlServer dbServer = MySqlServer.Instance;
             dbServer.StartServer();
 
-            //Let us create a table
-            dbServer.ExecuteNonQuery("CREATE TABLE testTable (`id` INT NOT NULL, `value` CHAR(150) NULL,  PRIMARY KEY (`id`)) ENGINE = MEMORY;");
+            //Create a database and select it
+            MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(), string.Format("CREATE DATABASE {0};USE {0};", _testDatabaseName));
 
-            //Insert data. You could of course insert data from a *.sql file
-            dbServer.ExecuteNonQuery("INSERT INTO testTable (`value`) VALUES ('some value')");
-        }
+            //Create a table
+            MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(_testDatabaseName), "CREATE TABLE testTable (`id` INT NOT NULL, `value` CHAR(150) NULL,  PRIMARY KEY (`id`)) ENGINE = MEMORY;");
 
-        //Concrete test. Writes data and reads it again.
-        [TestMethod]
-        public void TestMethod()
-        {
-            MySqlServer database = MySqlServer.Instance;
+            //Insert data (large chunks of data can of course be loaded from a file)
+            MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(_testDatabaseName), "INSERT INTO testTable (`id`,`value`) VALUES (1, 'some value')");
+            MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(_testDatabaseName), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')");
 
-            database.ExecuteNonQuery("insert into testTable (`id`, `value`) VALUES (2, 'test value')");
-
-            using (MySqlDataReader reader = database.ExecuteReader("select * from testTable WHERE id = 2"))
+            //Load data
+            using (MySqlDataReader reader = MySqlHelper.ExecuteReader(dbServer.GetConnectionString(_testDatabaseName), "select * from testTable WHERE id = 2"))
             {
                 reader.Read();
 
                 Assert.AreEqual("test value", reader.GetString("value"), "Inserted and read string should match");
             }
+
+            //Shutdown server
+            dbServer.ShutDown(); 
         }
 
         [TestMethod]
         public void TestKillProcess()
         {
+            int previousProcessCount = Process.GetProcessesByName("mysqld").Length;
+            
             MySqlServer database = MySqlServer.Instance;
-
+            database.StartServer();
             database.ShutDown();
-            Assert.AreEqual(0, Process.GetProcessesByName("mysqld").Length, "should kill the running process");
+            
+            Assert.AreEqual(previousProcessCount, Process.GetProcessesByName("mysqld").Length, "should kill the running process");
+        }
+
+        [TestMethod]
+        public void TestMultipleProcessesInARow()
+        {
+            var dbServer = MySqlServer.Instance;
+            dbServer.StartServer();
+            dbServer.ShutDown();
+            dbServer.StartServer();
+            dbServer.ShutDown();
         }
     }
 }
