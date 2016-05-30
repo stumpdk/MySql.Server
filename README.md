@@ -41,7 +41,7 @@ See [Example.cs](/Examples/Example.cs) for a complete example.
 
             MySqlHelper.ExecuteNonQuery(database.GetConnectionString(), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')");
 
-            using (MySqlDataReader reader = MySqlHelper.ExecuteReader("SELECT * FROM testTable WHERE id = 2"))
+            using (MySqlDataReader reader = MySqlHelper.ExecuteReader(database.GetConnectionString(), "SELECT * FROM testTable WHERE id = 2"))
             {
                 reader.Read();
 
