@@ -7,7 +7,7 @@ Download with [NuGet](https://www.nuget.org/packages/MySql.Server/), or download
 ## How does it work?
 Mysql.Server is simply running a minimal instance of MySql (currently version 5.6.26). Necessary data and log files are created at run time (and are cleaned up afterwards).
 
-The software makes it possible to create and run unit tests on a real MySql server without spending time on server setup.
+Mysql.Server makes it possible to create and run unit tests on a real MySql server without spending time on server setup.
 
 ## Example
 
@@ -64,13 +64,13 @@ See [Example.cs](https://github.com/stumpdk/MySqlStandAloneServer/blob/master/Ex
 ## API
 * **MySqlServer.Instance**: Retrieves an Instance of the server API.
 
-* **MySqlServer.StartServer()**: Starts the server and creates a database ("testdatabase"). Optimally this is run once during a test run. But it can be run as many times as needed (to get independent tests).
+* **MySqlServer.StartServer()**: Starts the server.
+
+* **MySqlServer.StartServer(serverPort)**: Starts the server at a specified port. Nice to have if you have a real MySql server running on the test machine.
 
 * **MySqlServer.ShutDown()**: Shuts down the server.
 
-* **MySqlServer.ExecuteNonQuery(string query)**: Executes a query with no return on default database ("testdatabase").
-
-* **MySqlServer.ExecuteReader(string query)**: Executes query and returns a MySqlDataReader object.
-
-* **MySqlServer.Connection**: Returns a connection object to the default database ("testdatabase"). This can be used to make more specific operations on the server with a MySqlCommand object (like prepared statements or ExecuteReaderAsync).
+* **MySqlServer.GetConnectionString(string query)**: Returns a connection string to be used when connecting to the server.
+* 
+* **MySqlServer.GetConnectionString(string databasename)**: Returns a connection string to be used when connecting to the server and a specific database. This method can only be used if a database is already created.
 
