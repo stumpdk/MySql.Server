@@ -11,13 +11,15 @@ namespace Example
     public class Example
     {
         private static readonly string _testDatabaseName = "testserver";
-
+        
         /// <summary>
         /// Example of a simple test: Start a server, create a database and add data to it
         /// </summary>
         [TestMethod]
         public void ExampleTest()
         {
+            //Setting up and starting the server
+            //This can also be done in a AssemblyInitialize method to speed up tests
             MySqlServer dbServer = MySqlServer.Instance;
             dbServer.StartServer();
 
