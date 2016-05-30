@@ -66,7 +66,7 @@ See [Example.cs](https://github.com/stumpdk/MySqlStandAloneServer/blob/master/Ex
 
 * **MySqlServer.StartServer()**: Starts the server.
 
-* **MySqlServer.StartServer(serverPort)**: Starts the server at a specified port. Nice to have if you have a real MySql server running on the test machine.
+* **MySqlServer.StartServer(int serverPort)**: Starts the server at a specified port. Nice to have if you have a real MySql server running on the test machine.
 
 * **MySqlServer.ShutDown()**: Shuts down the server.
 
