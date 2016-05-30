@@ -4,6 +4,9 @@ using System.IO;
 
 namespace MySql.Server
 {
+    /// <summary>
+    /// A helper class used to find the base directory of the application
+    /// </summary>
     internal class BaseDirHelper
     {
         static string baseDir;
