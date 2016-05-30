@@ -47,7 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Example.cs" />
+    <Compile Include="Examples\Example.cs" />
     <Compile Include="Library\BaseDirHelper.cs" />
     <Compile Include="Library\MySqlServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
