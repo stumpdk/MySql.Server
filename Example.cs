@@ -16,7 +16,7 @@ namespace Example
         /// Example of a simple test: Start a server, create a database and add data to it
         /// </summary>
         [TestMethod]
-        public void TestMethod()
+        public void ExampleTest()
         {
             MySqlServer dbServer = MySqlServer.Instance;
             dbServer.StartServer();
@@ -41,28 +41,6 @@ namespace Example
 
             //Shutdown server
             dbServer.ShutDown(); 
-        }
-
-        [TestMethod]
-        public void TestKillProcess()
-        {
-            int previousProcessCount = Process.GetProcessesByName("mysqld").Length;
-            
-            MySqlServer database = MySqlServer.Instance;
-            database.StartServer();
-            database.ShutDown();
-            
-            Assert.AreEqual(previousProcessCount, Process.GetProcessesByName("mysqld").Length, "should kill the running process");
-        }
-
-        [TestMethod]
-        public void TestMultipleProcessesInARow()
-        {
-            var dbServer = MySqlServer.Instance;
-            dbServer.StartServer();
-            dbServer.ShutDown();
-            dbServer.StartServer();
-            dbServer.ShutDown();
         }
     }
 }
