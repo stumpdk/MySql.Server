@@ -70,7 +70,7 @@ See [Example.cs](https://github.com/stumpdk/MySqlStandAloneServer/blob/master/Ex
 
 * **MySqlServer.ShutDown()**: Shuts down the server.
 
-* **MySqlServer.GetConnectionString(string query)**: Returns a connection string to be used when connecting to the server.
+* **MySqlServer.GetConnectionString()**: Returns a connection string to be used when connecting to the server.
 * 
 * **MySqlServer.GetConnectionString(string databasename)**: Returns a connection string to be used when connecting to the server and a specific database. This method can only be used if a database is already created.
 
