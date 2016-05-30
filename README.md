@@ -12,25 +12,25 @@ Mysql.Server makes it possible to create and run unit tests on a real MySql serv
 ## Example
 
 ### Create server, table and data.
-See [Example.cs](https://github.com/stumpdk/MySqlStandAloneServer/blob/master/Example.cs) for a complete example.
+See [Example.cs](/Examples/Example.cs) for a complete example.
 ```c#
-        //Starting the MySql server. Here it is done in the AssemblyInitialize method for performance purposes.
-        //It could also be restarted in every test using [TestInitialize] attribute
-        [AssemblyInitialize]
-        public static void Initialize(TestContext context)
-        {
-            MySqlServer dbServer = MySqlServer.Instance;
-            dbServer.StartServer();
-
-            //Let us create a table
-            dbServer.ExecuteNonQuery("CREATE TABLE testTable (`id` INT NOT NULL, `value` CHAR(150) NULL,  PRIMARY KEY (`id`)) ENGINE = MEMORY;");
-
-            //Insert data
-            dbServer.ExecuteNonQuery("INSERT INTO testTable (`value`) VALUES ('some value')");
-        }
+        //Get an instance
+        MySqlServer dbServer = MySqlServer.Instance;
+        
+        //Start the server
+        dbServer.StartServer();
+        
+        //Create a database and use it
+        MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(), "CREATE DATABASE testserver; USE testserver;");
+        
+        //Insert data
+        MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')"); 
+        //Shut down server
+        dbServer.ShutDown();
 ```
 
-### Make a test
+### A test example
+See [Example.cs](/Examples/Example.cs) for a complete example.
 ```c#
         //Concrete test. Writes data and reads it again.
         [TestMethod]
@@ -46,18 +46,6 @@ See [Example.cs](https://github.com/stumpdk/MySqlStandAloneServer/blob/master/Ex
 
                 Assert.AreEqual("test value", reader.GetString("value"), "Inserted and read string should match");
             }
-        }
-```
-
-### Shut down server
-```c#       
-        //The server is shutdown as the test ends
-        [AssemblyCleanup]
-        public static void Cleanup()
-        {
-            MySqlServer dbServer = MySqlServer.Instance;
-    
-            dbServer.ShutDown();
         }
 ```
 
