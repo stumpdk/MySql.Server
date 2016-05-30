@@ -25,6 +25,7 @@ See [Example.cs](/Examples/Example.cs) for a complete example.
         
         //Insert data
         MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')"); 
+        
         //Shut down server
         dbServer.ShutDown();
 ```
@@ -38,9 +39,9 @@ See [Example.cs](/Examples/Example.cs) for a complete example.
         {
             MySqlServer database = MySqlServer.Instance;
 
-            database.ExecuteNonQuery("insert into testTable (`id`, `value`) VALUES (2, 'test value')");
+            MySqlHelper.ExecuteNonQuery(database.GetConnectionString(), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')");
 
-            using (MySqlDataReader reader = database.ExecuteReader("select * from testTable WHERE id = 2"))
+            using (MySqlDataReader reader = MySqlHelper.ExecuteReader("SELECT * FROM testTable WHERE id = 2"))
             {
                 reader.Read();
 
