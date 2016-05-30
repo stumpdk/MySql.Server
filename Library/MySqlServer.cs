@@ -17,6 +17,8 @@ namespace MySql.Server
         private string _dataDirectory;
         private string _dataRootDirectory;
 
+        private int _serverPort = 3306;
+
         private Process _process;
 
         private MySqlConnection _testConnection;
@@ -162,11 +164,12 @@ namespace MySql.Server
             {
                 "--standalone",
                 "--console",
-                string.Format("--basedir=" + "\"{0}\"",_mysqlDirectory),
-                string.Format("--lc-messages-dir=" + "\"{0}\"",_mysqlDirectory),
-                string.Format("--datadir=" + "\"{0}\"",_dataDirectory),
+                string.Format("--basedir=\"{0}\"",_mysqlDirectory),
+                string.Format("--lc-messages-dir=\"{0}\"",_mysqlDirectory),
+                string.Format("--datadir=\"{0}\"",_dataDirectory),
                 "--skip-grant-tables",
                 "--enable-named-pipe",
+                string.Format("--port={0}", _serverPort.ToString()),
                // "--skip-networking",
                 "--innodb_fast_shutdown=2",
                 "--innodb_doublewrite=OFF",
@@ -189,6 +192,16 @@ namespace MySql.Server
             }
 
             this.waitForStartup();
+        }
+
+        /// <summary>
+        /// Start the server on a specified port number
+        /// </summary>
+        /// <param name="serverPort">The port on which the server should listen</param>
+        public void StartServer(int serverPort)
+        {
+            _serverPort = serverPort;
+            StartServer();
         }
 
         /// <summary>
