@@ -9,7 +9,7 @@ Mysql.Server is simply running a minimal instance of MySql (currently version 5.
 
 Mysql.Server makes it possible to create and run unit tests on a real MySql server without spending time on server setup.
 
-## Example
+## Examples
 
 ### Create server, table and data.
 See [Example.cs](/Examples/Example.cs) for a complete example.
@@ -30,7 +30,7 @@ See [Example.cs](/Examples/Example.cs) for a complete example.
         dbServer.ShutDown();
 ```
 
-### A test example
+### A test
 See [Example.cs](/Examples/Example.cs) for a complete example.
 ```c#
         //Concrete test. Writes data and reads it again.
