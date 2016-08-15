@@ -63,3 +63,7 @@ See [Example.cs](/Examples/Example.cs) for a complete example.
 
 * **MySqlServer.GetConnectionString(string databasename)**: Returns a connection string to be used when connecting to the server and a specific database. This method can only be used if a database is already created.
 
+* **MySqlServer.ProcessId**: Returns the process id of the server. Returns -1 if the process has exited.
+
+* **MySqlServer.ServerPort: Returns the server port of the instance.
+

@@ -16,12 +16,28 @@ namespace MySql.Server
         private string _mysqlDirectory;
         private string _dataDirectory;
         private string _dataRootDirectory;
+        private string _runningInstancesFile;
 
         private int _serverPort = 3306;
-
         private Process _process;
 
         private MySqlConnection _testConnection;
+        
+        public int ServerPort { get { return _serverPort; } }
+        public int ProcessId
+        {
+            get
+            {
+                if (!_process.HasExited)
+                {
+                    return _process.Id;
+                }
+               
+                return -1;
+            }
+        }
+
+
 
         //The Instance is running the private constructor. This way, the class is implemented as a singleton
         private static MySqlServer instance;
@@ -46,6 +62,7 @@ namespace MySql.Server
             _mysqlDirectory = BaseDirHelper.GetBaseDir() + "\\tempServer";
             _dataRootDirectory = _mysqlDirectory + "\\data";
             _dataDirectory = string.Format("{0}\\{1}", _dataRootDirectory, Guid.NewGuid());
+            _runningInstancesFile = BaseDirHelper.GetBaseDir() + "\\running_instances";
         }
 
         ~MySqlServer()
@@ -56,7 +73,14 @@ namespace MySql.Server
 
             if (_process != null)
             {
-                _process.Kill();
+                try { 
+                    _process.Kill();
+                }
+                catch(Exception e)
+                {
+                    System.Console.WriteLine("Could not kill process while disposing");
+                }
+
                 _process.Dispose();
                 _process = null;
             }
@@ -70,7 +94,7 @@ namespace MySql.Server
         /// <returns>A connection string for the server</returns>
         public string GetConnectionString()
         {
-            return string.Format("Server=127.0.0.1;Port={0};Protocol=pipe;", _serverPort.ToString());
+            return string.Format("Server=127.0.0.1;Port=3306;Protocol=pipe;");
         }
 
         /// <summary>
@@ -109,22 +133,31 @@ namespace MySql.Server
         /// <summary>
         /// Removes all directories related to the MySQL process
         /// </summary>
-        private void removeDirs()
+        private void removeDirs(int retries)
         {
             string[] dirs = { this._mysqlDirectory, this._dataRootDirectory, this._dataDirectory };
 
             foreach (string dir in dirs)
             {
                 DirectoryInfo checkDir = new DirectoryInfo(dir);
-                try
+
+                if (checkDir.Exists)
                 {
-                    if (checkDir.Exists)
-                        checkDir.Delete(true);
-                }
-                catch (Exception)
-                {
-                    System.Console.WriteLine("Could not delete directory: ", checkDir.FullName);
-                }
+                    int i = 0;
+                    while(i < retries)
+                    {
+                        try { 
+                            checkDir.Delete(true);
+                            i = retries;
+                        }
+                        catch (Exception e)
+                        {
+                            System.Console.WriteLine("Could not delete directory: " + checkDir.FullName + e.Message);
+                            i++;
+                            Thread.Sleep(50);
+                        }
+                    }
+                }                        
             }
         }
 
@@ -154,6 +187,9 @@ namespace MySql.Server
             //The process is still running, don't create a new
             if (_process != null && !_process.HasExited)
                 return;
+
+            //Cleaning up any precedented processes
+            this.KillPreviousProcesses();
 
             createDirs();
             extractMySqlFiles();
@@ -186,6 +222,7 @@ namespace MySql.Server
 
             try { 
                 _process.Start();
+                File.WriteAllText(_runningInstancesFile, _process.Id.ToString());
             }
             catch(Exception e){
                 throw new Exception("Could not start server process: " + e.Message);
@@ -245,6 +282,37 @@ namespace MySql.Server
             _testConnection = null;
         }
 
+        public void KillPreviousProcesses()
+        {
+            if (!File.Exists(_runningInstancesFile))
+                return;
+
+            string[] runningInstancesIds = File.ReadAllLines(_runningInstancesFile);
+
+            for(int i = 0; i < runningInstancesIds.Length; i++)
+            {
+                try
+                {
+                    Process p = Process.GetProcessById(Int32.Parse(runningInstancesIds[i]));
+                    p.Kill();
+                }
+                catch(Exception e)
+                {
+                    System.Console.WriteLine("Could not kill process: " + e.Message);
+                }
+            }
+
+            try { 
+                File.Delete(_runningInstancesFile);
+            }
+            catch(Exception e)
+            {
+                System.Console.WriteLine("Could not delete running instances file");
+            }
+
+            this.removeDirs(10);
+        }
+
         /// <summary>
         /// Shuts down the server and removes all files related to it
         /// </summary>
@@ -260,13 +328,14 @@ namespace MySql.Server
                 }
 
                 //System.Console.WriteLine("Process killed");
-                removeDirs();
             }
             catch (Exception e)
             {
                 System.Console.WriteLine("Could not close database server process: " + e.Message);
                 throw;
             }
+
+            removeDirs(10);
         }
     }
 }
