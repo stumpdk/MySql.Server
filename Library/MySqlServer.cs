@@ -159,6 +159,14 @@ namespace MySql.Server
                     }
                 }                        
             }
+
+            try { 
+                File.Delete(this._runningInstancesFile);
+            }
+            catch(Exception e)
+            {
+                System.Console.WriteLine("Could not delete runningInstancesFile");
+            }
         }
 
         /// <summary>
