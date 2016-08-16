@@ -65,5 +65,5 @@ See [Example.cs](/Examples/Example.cs) for a complete example.
 
 * **MySqlServer.ProcessId**: Returns the process id of the server. Returns -1 if the process has exited.
 
-* **MySqlServer.ServerPort: Returns the server port of the instance.
+* **MySqlServer.ServerPort**: Returns the server port of the instance.
 
