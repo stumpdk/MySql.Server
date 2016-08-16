@@ -4,33 +4,34 @@ MySql standalone server for C# unit tests
 ## Use
 Download with [NuGet](https://www.nuget.org/packages/MySql.Server/), or download the [release](https://github.com/stumpdk/Mysql.Server/releases) and include **Mysql.Server.dll** as a reference in your project.
 
-## How does it work?
+## How it works
 Mysql.Server is simply running a minimal instance of MySql (currently version 5.6.26). Necessary data and log files are created at run time (and are cleaned up afterwards).
 
-The software makes it possible to create and run unit tests on a real MySql server without spending time on server setup.
+Mysql.Server makes it possible to create and run unit tests on a real MySql server without spending time on server setup.
 
-## Example
+## Examples
 
 ### Create server, table and data.
-See [Example.cs](https://github.com/stumpdk/MySqlStandAloneServer/blob/master/Example.cs) for a complete example.
+See [Example.cs](/Examples/Example.cs) for a complete example.
 ```c#
-        //Starting the MySql server. Here it is done in the AssemblyInitialize method for performance purposes.
-        //It could also be restarted in every test using [TestInitialize] attribute
-        [AssemblyInitialize]
-        public static void Initialize(TestContext context)
-        {
-            MySqlServer dbServer = MySqlServer.Instance;
-            dbServer.StartServer();
-
-            //Let us create a table
-            dbServer.ExecuteNonQuery("CREATE TABLE testTable (`id` INT NOT NULL, `value` CHAR(150) NULL,  PRIMARY KEY (`id`)) ENGINE = MEMORY;");
-
-            //Insert data
-            dbServer.ExecuteNonQuery("INSERT INTO testTable (`value`) VALUES ('some value')");
-        }
+        //Get an instance
+        MySqlServer dbServer = MySqlServer.Instance;
+        
+        //Start the server
+        dbServer.StartServer();
+        
+        //Create a database and use it
+        MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(), "CREATE DATABASE testserver; USE testserver;");
+        
+        //Insert data
+        MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')"); 
+        
+        //Shut down server
+        dbServer.ShutDown();
 ```
 
-### Make a test
+### A test
+See [Example.cs](/Examples/Example.cs) for a complete example.
 ```c#
         //Concrete test. Writes data and reads it again.
         [TestMethod]
@@ -38,9 +39,9 @@ See [Example.cs](https://github.com/stumpdk/MySqlStandAloneServer/blob/master/Ex
         {
             MySqlServer database = MySqlServer.Instance;
 
-            database.ExecuteNonQuery("insert into testTable (`id`, `value`) VALUES (2, 'test value')");
+            MySqlHelper.ExecuteNonQuery(database.GetConnectionString(), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')");
 
-            using (MySqlDataReader reader = database.ExecuteReader("select * from testTable WHERE id = 2"))
+            using (MySqlDataReader reader = MySqlHelper.ExecuteReader(database.GetConnectionString(), "SELECT * FROM testTable WHERE id = 2"))
             {
                 reader.Read();
 
@@ -49,28 +50,20 @@ See [Example.cs](https://github.com/stumpdk/MySqlStandAloneServer/blob/master/Ex
         }
 ```
 
-### Shut down server
-```c#       
-        //The server is shutdown as the test ends
-        [AssemblyCleanup]
-        public static void Cleanup()
-        {
-            MySqlServer dbServer = MySqlServer.Instance;
-    
-            dbServer.ShutDown();
-        }
-```
-
 ## API
 * **MySqlServer.Instance**: Retrieves an Instance of the server API.
 
-* **MySqlServer.StartServer()**: Starts the server and creates a database ("testdatabase"). Optimally this is run once during a test run. But it can be run as many times as needed (to get independent tests).
+* **MySqlServer.StartServer()**: Starts the server.
+
+* **MySqlServer.StartServer(int serverPort)**: Starts the server at a specified port. Nice to have if you have a real MySql server running on the test machine.
 
 * **MySqlServer.ShutDown()**: Shuts down the server.
 
-* **MySqlServer.ExecuteNonQuery(string query)**: Executes a query with no return on default database ("testdatabase").
+* **MySqlServer.GetConnectionString()**: Returns a connection string to be used when connecting to the server.
 
-* **MySqlServer.ExecuteReader(string query)**: Executes query and returns a MySqlDataReader object.
+* **MySqlServer.GetConnectionString(string databasename)**: Returns a connection string to be used when connecting to the server and a specific database. This method can only be used if a database is already created.
 
-* **MySqlServer.Connection**: Returns a connection object to the default database ("testdatabase"). This can be used to make more specific operations on the server with a MySqlCommand object (like prepared statements or ExecuteReaderAsync).
+* **MySqlServer.ProcessId**: Returns the process id of the server. Returns -1 if the process has exited.
+
+* **MySqlServer.ServerPort: Returns the server port of the instance.
 
