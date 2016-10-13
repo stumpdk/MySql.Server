@@ -61,6 +61,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Examples\Example.cs" />
     <Compile Include="MySqlServerTests.cs" />
     <Compile Include="NUNITShim.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
