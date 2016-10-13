@@ -268,7 +268,7 @@ namespace MySql.Server
             while (!_testConnection.State.Equals(System.Data.ConnectionState.Open))
             {
                 if (totalWaitTime > 10000)
-                    throw new Exception("Server could not be started.", lastException);
+                    throw new Exception("Server could not be started." + lastException.Message);
 
                 totalWaitTime = totalWaitTime + sleepTime;
 
