@@ -1,2 +1,4 @@
 language: csharp
 solution: MySql.Server.sln
+script:
+  - xbuild /p:Configuration=Debug MySql.Server.sln
