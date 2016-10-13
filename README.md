@@ -13,7 +13,7 @@ Mysql.Server makes it possible to create and run unit tests on a real MySql serv
 ## Examples
 
 ### Create server, table and data.
-See [Example.cs](/Examples/Example.cs) for a complete example.
+See [Example.cs](https://github.com/stumpdk/MySql.Server/blob/master/MySql.Server.Tests/Examples/Example.cs) for a complete example.
 ```c#
         //Get an instance
         MySqlServer dbServer = MySqlServer.Instance;
