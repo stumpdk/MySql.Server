@@ -1,4 +1,4 @@
-# Mysql.Server [![Build Status](https://travis-ci.org/stumpdk/MySql.Server.svg?branch=master)](https://travis-ci.org/stumpdk/MySql.Server) [![Nuget](https://buildstats.info/nuget/mysql.server)](http://nuget.org/packages/MySql.Server)
+# MySql.Server [![Build Status](https://travis-ci.org/stumpdk/MySql.Server.svg?branch=master)](https://travis-ci.org/stumpdk/MySql.Server) [![Nuget](https://buildstats.info/nuget/mysql.server)](http://nuget.org/packages/MySql.Server)
 
 MySql standalone server for C# unit tests
 
