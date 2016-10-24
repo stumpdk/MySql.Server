@@ -107,14 +107,19 @@ namespace MySql.Server
             return string.Format("Server=127.0.0.1;Port={0};Protocol=pipe;Database={1};", _serverPort.ToString(), databaseName);
         }
 
+        private string[] Directories
+        {
+            get
+            {
+                return new [] { _mysqlDirectory, Path.Combine(_mysqlDirectory, "bin"), Path.Combine(_mysqlDirectory, "share"), _dataRootDirectory, _dataDirectory };
+            }
+        }
         /// <summary>
         /// Create directories necessary for MySQL to run
         /// </summary>
         private void createDirs()
         {
-            string[] dirs = { _mysqlDirectory, _dataRootDirectory, _dataDirectory };
-
-            foreach (string dir in dirs) {
+            foreach (string dir in Directories) {
                 DirectoryInfo checkDir = new DirectoryInfo(dir);
                 try
                 {
@@ -135,9 +140,7 @@ namespace MySql.Server
         /// </summary>
         private void removeDirs(int retries)
         {
-            string[] dirs = { this._mysqlDirectory, this._dataRootDirectory, this._dataDirectory };
-
-            foreach (string dir in dirs)
+            foreach (string dir in Directories)
             {
                 DirectoryInfo checkDir = new DirectoryInfo(dir);
 
@@ -175,10 +178,12 @@ namespace MySql.Server
         private void extractMySqlFiles()
         {
             try { 
-                if (!new FileInfo(_mysqlDirectory + "\\mysqld.exe").Exists) {
+                if (!new FileInfo(_mysqlDirectory + "\\bin\\mysqld.exe").Exists) {
                     //Extracting the two MySql files needed for the standalone server
-                    File.WriteAllBytes(_mysqlDirectory + "\\mysqld.exe", Properties.Resources.mysqld);
-                    File.WriteAllBytes(_mysqlDirectory + "\\errmsg.sys", Properties.Resources.errmsg);
+                    File.WriteAllBytes(_mysqlDirectory + "\\bin\\mysqld.exe", Properties.Resources.mysqld);
+                    File.WriteAllBytes(_mysqlDirectory + "\\bin\\mysql_install_db.exe", Properties.Resources.mysql_install_db);
+                    File.WriteAllBytes(_mysqlDirectory + "\\share.zip", Properties.Resources.share);
+                    System.IO.Compression.ZipFile.ExtractToDirectory(_mysqlDirectory + "\\share.zip", _mysqlDirectory);
                 }
             }
             catch
@@ -202,6 +207,27 @@ namespace MySql.Server
             createDirs();
             extractMySqlFiles();
 
+            using (var process = new Process())
+            {
+
+                var installarguments = new[]
+                {
+                    string.Format("--datadir=\"{0}\"",_dataDirectory),
+                    string.Format("--port={0}", _serverPort.ToString()),
+                   // "--skip-networking",
+                };
+
+                process.StartInfo.FileName = string.Format("\"{0}\\bin\\mysql_install_db.exe\"", _mysqlDirectory);
+                process.StartInfo.Arguments = string.Join(" ", installarguments);
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.CreateNoWindow = true;
+
+                System.Console.WriteLine("Running " + process.StartInfo.FileName + " " + String.Join(" ", installarguments));
+
+                process.Start();
+                process.WaitForExit();
+            }
+
             this._process = new Process();
 
             var arguments = new[]
@@ -209,7 +235,6 @@ namespace MySql.Server
                 "--standalone",
                 "--console",
                 string.Format("--basedir=\"{0}\"",_mysqlDirectory),
-                string.Format("--lc-messages-dir=\"{0}\"",_mysqlDirectory),
                 string.Format("--datadir=\"{0}\"",_dataDirectory),
                 "--skip-grant-tables",
                 "--enable-named-pipe",
@@ -218,10 +243,9 @@ namespace MySql.Server
                 "--innodb_fast_shutdown=2",
                 "--innodb_doublewrite=OFF",
                 "--innodb_log_file_size=1048576",
-                "--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
             };
 
-            _process.StartInfo.FileName = string.Format("\"{0}\\mysqld.exe\"", _mysqlDirectory);
+            _process.StartInfo.FileName = string.Format("\"{0}\\bin\\mysqld.exe\"", _mysqlDirectory);
             _process.StartInfo.Arguments = string.Join(" ", arguments);
             _process.StartInfo.UseShellExecute = false;
             _process.StartInfo.CreateNoWindow = true;
