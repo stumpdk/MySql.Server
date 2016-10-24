@@ -94,17 +94,19 @@ namespace MySql.Server
         /// <returns>A connection string for the server</returns>
         public string GetConnectionString()
         {
-            return string.Format("Server=127.0.0.1;Port={0};Protocol=pipe;", _serverPort.ToString());
+            return string.Format("Server=127.0.0.1;Port={0};Protocol=pipe;UserId=root", _serverPort.ToString());
         }
+
 
         /// <summary>
         /// Get a connection string for the server and a specified database
         /// </summary>
         /// <param name="databaseName">The name of the database</param>
+        /// <param name="userName">The name of the user to connect as</param>
         /// <returns>A connection string for the server and database</returns>
         public string GetConnectionString(string databaseName)
         {
-            return string.Format("Server=127.0.0.1;Port={0};Protocol=pipe;Database={1};", _serverPort.ToString(), databaseName);
+            return (new MySqlConnectionStringBuilder(GetConnectionString()) { Database = databaseName }).ToString();
         }
 
         private string[] Directories
@@ -214,6 +216,7 @@ namespace MySql.Server
                 {
                     string.Format("--datadir=\"{0}\"",_dataDirectory),
                     string.Format("--port={0}", _serverPort.ToString()),
+                    "--default-user",
                    // "--skip-networking",
                 };
 
@@ -236,7 +239,6 @@ namespace MySql.Server
                 "--console",
                 string.Format("--basedir=\"{0}\"",_mysqlDirectory),
                 string.Format("--datadir=\"{0}\"",_dataDirectory),
-                "--skip-grant-tables",
                 "--enable-named-pipe",
                 string.Format("--port={0}", _serverPort.ToString()),
                // "--skip-networking",
