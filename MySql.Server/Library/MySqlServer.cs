@@ -94,7 +94,7 @@ namespace MySql.Server
         /// <returns>A connection string for the server</returns>
         public string GetConnectionString()
         {
-            return string.Format("Server=127.0.0.1;Port={0};Protocol=pipe;UserId=root", _serverPort.ToString());
+            return string.Format("Server=127.0.0.1;Port={0};UserId=root", _serverPort.ToString());
         }
 
 
