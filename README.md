@@ -6,7 +6,7 @@ MySql standalone server for C# unit tests
 Download with [NuGet](https://www.nuget.org/packages/MySql.Server/), or download the [release](https://github.com/stumpdk/Mysql.Server/releases) and include **Mysql.Server.dll** as a reference in your project.
 
 ## How it works
-Mysql.Server is simply running a minimal instance of MySql (currently version 5.6.26). Necessary data and log files are created at run time (and are cleaned up afterwards).
+Mysql.Server is simply running a minimal instance of MariaDB (currently version 10.1.16). Necessary data and log files are created at run time (and are cleaned up afterwards).
 
 Mysql.Server makes it possible to create and run unit tests on a real MySql server without spending time on server setup.
 
