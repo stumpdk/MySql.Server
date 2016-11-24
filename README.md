@@ -22,7 +22,7 @@ See [Example.cs](https://github.com/stumpdk/MySql.Server/blob/master/MySql.Serve
         dbServer.StartServer();
         
         //Create a database and use it
-        MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(), "CREATE DATABASE testserver; USE testserver;");
+        MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(), "CREATE DATABASE testserver;");
         
         //Insert data
         MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString("testserver"), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')"); 
