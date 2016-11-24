@@ -25,7 +25,7 @@ See [Example.cs](https://github.com/stumpdk/MySql.Server/blob/master/MySql.Serve
         MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(), "CREATE DATABASE testserver; USE testserver;");
         
         //Insert data
-        MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString(), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')"); 
+        MySqlHelper.ExecuteNonQuery(dbServer.GetConnectionString("testserver"), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')"); 
         
         //Shut down server
         dbServer.ShutDown();
@@ -39,9 +39,9 @@ See [Example.cs](https://github.com/stumpdk/MySql.Server/blob/master/MySql.Serve
         {
             MySqlServer database = MySqlServer.Instance;
 
-            MySqlHelper.ExecuteNonQuery(database.GetConnectionString(), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')");
+            MySqlHelper.ExecuteNonQuery(database.GetConnectionString("testserver"), "INSERT INTO testTable (`id`, `value`) VALUES (2, 'test value')");
 
-            using (MySqlDataReader reader = MySqlHelper.ExecuteReader(database.GetConnectionString(), "SELECT * FROM testTable WHERE id = 2"))
+            using (MySqlDataReader reader = MySqlHelper.ExecuteReader(database.GetConnectionString("testserver"), "SELECT * FROM testTable WHERE id = 2"))
             {
                 reader.Read();
 
