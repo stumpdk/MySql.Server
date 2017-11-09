@@ -37,6 +37,20 @@ namespace MySql.Server
             }
         }
 
+        public string StdOut {
+            get
+            {
+                return _process?.StandardOutput.ReadToEnd();
+            }
+        }
+
+        public string StdErr
+        {
+            get
+            {
+                return _process?.StandardError.ReadToEnd();
+            }
+        }
 
 
         //The Instance is running the private constructor. This way, the class is implemented as a singleton
@@ -94,7 +108,7 @@ namespace MySql.Server
         /// <returns>A connection string for the server</returns>
         public string GetConnectionString()
         {
-            return string.Format("Server=127.0.0.1;Port={0};UserId=root", _serverPort.ToString());
+            return string.Format("Server=127.0.0.1;Port={0};UserId=root;Pooling=false", _serverPort.ToString());
         }
 
 
@@ -252,6 +266,9 @@ namespace MySql.Server
             _process.StartInfo.UseShellExecute = false;
             _process.StartInfo.CreateNoWindow = true;
 
+            _process.StartInfo.RedirectStandardError = true;
+            _process.StartInfo.RedirectStandardOutput = true;
+
             System.Console.WriteLine("Running " + _process.StartInfo.FileName + " " + String.Join(" ", arguments));
 
             try { 
@@ -262,7 +279,21 @@ namespace MySql.Server
                 throw new Exception("Could not start server process: " + e.Message);
             }
 
-            this.waitForStartup();
+            try
+            {
+                this.waitForStartup();
+            } catch
+            {
+                var stderr = _process.StandardError.ReadToEnd();
+                var stdout = _process.StandardOutput.ReadToEnd();
+                throw new Exception(string.Format(
+                    "An error happened while waiting for the server to start. StdOut: {0}{1} StdErr: {2}", 
+                    stdout, 
+                    Environment.NewLine + Environment.NewLine, 
+                    stderr));
+
+                throw;
+            }
         }
 
         /// <summary>
