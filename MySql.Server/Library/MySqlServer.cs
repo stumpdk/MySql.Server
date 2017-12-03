@@ -208,10 +208,14 @@ namespace MySql.Server
             {
                 var initProcess = StartMysqlProcess(new[] { "--initialize" });
                 initProcess.WaitForExit();
+                _process = StartMysqlProcess(null);
+                waitForStartup(100000);
             }
-
-            _process = StartMysqlProcess(null);
-            waitForStartup();
+            else
+            {
+                _process = StartMysqlProcess(null);
+                waitForStartup();
+            }
         }
 
         /// <summary>
@@ -229,10 +233,11 @@ namespace MySql.Server
         /// Checks if the server is started. The most reliable way is simply to check if we can connect to it
         /// </summary>
         ///
-        private void waitForStartup()
+        private void waitForStartup(int maxAllowedSleepTime = 10000)
         {
             int totalWaitTime = 0;
             int sleepTime = 100;
+                
 
             Exception lastException = new Exception();
 
@@ -243,7 +248,7 @@ namespace MySql.Server
             
             while (!_testConnection.State.Equals(System.Data.ConnectionState.Open))
             {
-                if (totalWaitTime > 100000)
+                if (totalWaitTime > maxAllowedSleepTime)
                     throw new Exception("Server could not be started." + lastException.Message);
 
                 totalWaitTime = totalWaitTime + sleepTime;

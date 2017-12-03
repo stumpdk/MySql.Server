@@ -4,6 +4,7 @@ using System.IO;
 using MySql.Server;
 using System.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Threading;
 
 namespace MySqlServerTests
 {
@@ -18,7 +19,9 @@ namespace MySqlServerTests
             MySqlServer database = MySqlServer.Instance;
             database.StartServer();
             database.ShutDown();
-            
+
+            Thread.Sleep(500);
+
             Assert.AreEqual(previousProcessCount, Process.GetProcessesByName("mysqld").Length, "should kill the running process");
         }
 
