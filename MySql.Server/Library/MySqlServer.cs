@@ -94,7 +94,7 @@ namespace MySql.Server
         /// <returns>A connection string for the server</returns>
         public string GetConnectionString()
         {
-            return string.Format("Server=localhost;Port={0};Protocol=pipe;", _serverPort.ToString());
+            return string.Format("Server=localhost;Port={0};Protocol=pipe;SslMode=none;", _serverPort.ToString());
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace MySql.Server
         /// <returns>A connection string for the server and database</returns>
         public string GetConnectionString(string databaseName)
         {
-            return string.Format("Server=localhost;Port={0};Protocol=pipe;Database={1};", _serverPort.ToString(), databaseName);
+            return string.Format("Server=localhost;Port={0};Protocol=pipe;SslMode=none;Database={1};", _serverPort.ToString(), databaseName);
         }
 
         /// <summary>
