@@ -17,6 +17,7 @@ namespace MySql.Server
         private string _dataDirectory;
         private string _dataRootDirectory;
         private string _runningInstancesFile;
+        private const string _MYSQLEXE = "mysqld_test.exe";
 
         private int _serverPort = 3306;
         private Process _process;
@@ -175,9 +176,9 @@ namespace MySql.Server
         private void extractMySqlFiles()
         {
             try { 
-                if (!new FileInfo(_mysqlDirectory + "\\mysqld.exe").Exists) {
+                if (!new FileInfo(_mysqlDirectory + "\\" + _MYSQLEXE).Exists) {
                     //Extracting the two MySql files needed for the standalone server
-                    File.WriteAllBytes(_mysqlDirectory + "\\mysqld.exe", Properties.Resources.mysqld);
+                    File.WriteAllBytes(_mysqlDirectory + "\\" + _MYSQLEXE, Properties.Resources.mysqld);
                     File.WriteAllBytes(_mysqlDirectory + "\\errmsg.sys", Properties.Resources.errmsg);
                 }
             }
@@ -221,7 +222,7 @@ namespace MySql.Server
                 "--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
             };
 
-            _process.StartInfo.FileName = string.Format("\"{0}\\mysqld.exe\"", _mysqlDirectory);
+            _process.StartInfo.FileName = string.Format("\"{0}\\{1}\"", _mysqlDirectory, _MYSQLEXE);
             _process.StartInfo.Arguments = string.Join(" ", arguments);
             _process.StartInfo.UseShellExecute = false;
             _process.StartInfo.CreateNoWindow = true;
