@@ -64,6 +64,7 @@ namespace MySql.Server
             _dataRootDirectory = _mysqlDirectory + "\\data";
             _dataDirectory = string.Format("{0}\\{1}", _dataRootDirectory, Guid.NewGuid());
             _runningInstancesFile = BaseDirHelper.GetBaseDir() + "\\running_instances";
+            RemoveDirsTimeout = TimeSpan.FromMilliseconds(500);
         }
 
         ~MySqlServer()
@@ -76,6 +77,7 @@ namespace MySql.Server
             {
                 try { 
                     _process.Kill();
+                    _process.WaitForExit();
                 }
                 catch(Exception e)
                 {
@@ -88,6 +90,8 @@ namespace MySql.Server
 
             instance = null;
         }
+
+        public TimeSpan RemoveDirsTimeout { get; set; }
 
         /// <summary>
         /// Get a connection string for the server (no database selected)
@@ -134,27 +138,31 @@ namespace MySql.Server
         /// <summary>
         /// Removes all directories related to the MySQL process
         /// </summary>
-        private void removeDirs(int retries)
+        private void removeDirs()
         {
             string[] dirs = { this._mysqlDirectory, this._dataRootDirectory, this._dataDirectory };
 
             foreach (string dir in dirs)
             {
+                var startTime = DateTime.Now;
                 DirectoryInfo checkDir = new DirectoryInfo(dir);
 
                 if (checkDir.Exists)
                 {
-                    int i = 0;
-                    while(i < retries)
+                    int numTry = 0;
+                    while(true)
                     {
                         try { 
                             checkDir.Delete(true);
-                            i = retries;
+                            break;
                         }
                         catch (Exception e)
                         {
                             System.Console.WriteLine("Could not delete directory: " + checkDir.FullName + e.Message);
-                            i++;
+                            numTry++;
+
+                            if (DateTime.Now - startTime > RemoveDirsTimeout)
+                                throw new Exception(string.Format("Removing directory '{0}' failed after {1} timeout!", dir, RemoveDirsTimeout), e);
                             Thread.Sleep(50);
                         }
                     }
@@ -166,7 +174,7 @@ namespace MySql.Server
             }
             catch(Exception e)
             {
-                System.Console.WriteLine("Could not delete runningInstancesFile");
+                throw new Exception("Could not delete runningInstancesFile", e);
             }
         }
 
@@ -234,7 +242,7 @@ namespace MySql.Server
                 File.WriteAllText(_runningInstancesFile, _process.Id.ToString());
             }
             catch(Exception e){
-                throw new Exception("Could not start server process: " + e.Message);
+                throw new Exception("Could not start server process: " + e.Message, e);
             }
 
             this.waitForStartup();
@@ -304,6 +312,7 @@ namespace MySql.Server
                 {
                     Process p = Process.GetProcessById(Int32.Parse(runningInstancesIds[i]));
                     p.Kill();
+                    p.WaitForExit();
                 }
                 catch(Exception e)
                 {
@@ -319,7 +328,7 @@ namespace MySql.Server
                 System.Console.WriteLine("Could not delete running instances file");
             }
 
-            this.removeDirs(10);
+            this.removeDirs();
         }
 
         /// <summary>
@@ -344,7 +353,7 @@ namespace MySql.Server
                 throw;
             }
 
-            removeDirs(10);
+            removeDirs();
         }
     }
 }
