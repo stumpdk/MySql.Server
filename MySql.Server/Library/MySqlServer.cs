@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace MySql.Server
@@ -190,63 +191,38 @@ namespace MySql.Server
         /// <summary>
         /// Starts the server and creates all files and folders necessary
         /// </summary>
-        public void StartServer()
+        /// <param name="initialze">Whether to initialize the database or not</param>
+        public void StartServer(bool initialze = false)
         {
             //The process is still running, don't create a new
             if (_process != null && !_process.HasExited)
                 return;
 
             //Cleaning up any precedented processes
-            this.KillPreviousProcesses();
+            KillPreviousProcesses();
 
             createDirs();
             extractMySqlFiles();
 
-            this._process = new Process();
-
-            var arguments = new[]
+            if (initialze)
             {
-                "--standalone",
-                "--console",
-                string.Format("--basedir=\"{0}\"",_mysqlDirectory),
-                string.Format("--lc-messages-dir=\"{0}\"",_mysqlDirectory),
-                string.Format("--datadir=\"{0}\"",_dataDirectory),
-                "--skip-grant-tables",
-                "--enable-named-pipe",
-                string.Format("--port={0}", _serverPort.ToString()),
-               // "--skip-networking",
-                "--innodb_fast_shutdown=2",
-                "--innodb_doublewrite=OFF",
-                "--innodb_log_file_size=1048576",
-                "--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
-            };
-
-            _process.StartInfo.FileName = string.Format("\"{0}\\mysqld.exe\"", _mysqlDirectory);
-            _process.StartInfo.Arguments = string.Join(" ", arguments);
-            _process.StartInfo.UseShellExecute = false;
-            _process.StartInfo.CreateNoWindow = true;
-
-            System.Console.WriteLine("Running " + _process.StartInfo.FileName + " " + String.Join(" ", arguments));
-
-            try { 
-                _process.Start();
-                File.WriteAllText(_runningInstancesFile, _process.Id.ToString());
-            }
-            catch(Exception e){
-                throw new Exception("Could not start server process: " + e.Message);
+                var initProcess = StartMysqlProcess(new[] { "--initialize" });
+                initProcess.WaitForExit();
             }
 
-            this.waitForStartup();
+            _process = StartMysqlProcess(null);
+            waitForStartup();
         }
 
         /// <summary>
         /// Start the server on a specified port number
         /// </summary>
         /// <param name="serverPort">The port on which the server should listen</param>
-        public void StartServer(int serverPort)
+        /// <param name="initialze">Whether to initialize the database or not</param>
+        public void StartServer(int serverPort, bool initialze = false)
         {
             _serverPort = serverPort;
-            StartServer();
+            StartServer(initialze);
         }
 
         /// <summary>
@@ -267,7 +243,7 @@ namespace MySql.Server
             
             while (!_testConnection.State.Equals(System.Data.ConnectionState.Open))
             {
-                if (totalWaitTime > 10000)
+                if (totalWaitTime > 100000)
                     throw new Exception("Server could not be started." + lastException.Message);
 
                 totalWaitTime = totalWaitTime + sleepTime;
@@ -344,6 +320,47 @@ namespace MySql.Server
             }
 
             removeDirs(10);
+        }
+
+        private Process StartMysqlProcess(string[] additionalArgs)
+        {
+            var process = new Process();
+
+            var arguments = new[]
+            {
+                "--standalone",
+                "--console",
+                $"--basedir=\"{_mysqlDirectory}\"",
+                $"--lc-messages-dir=\"{_mysqlDirectory}\"",
+                $"--datadir=\"{_dataDirectory}\"",
+                "--skip-grant-tables",
+                "--enable-named-pipe",
+                $"--port={_serverPort.ToString()}",
+                "--innodb_fast_shutdown=2",
+                "--innodb_doublewrite=OFF",
+                "--innodb_log_file_size=1048576",
+                "--innodb_data_file_path=ibdata1:10M;ibdata2:10M:autoextend"
+            };
+            var allArgs = additionalArgs?.Concat(arguments).ToArray() ?? arguments;
+
+            process.StartInfo.FileName = $"\"{_mysqlDirectory}\\mysqld.exe\"";
+            process.StartInfo.Arguments = string.Join(" ", allArgs);
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+
+            System.Console.WriteLine("Running " + process.StartInfo.FileName + " " + String.Join(" ", allArgs));
+
+            try
+            {
+                process.Start();
+                File.WriteAllText(_runningInstancesFile, process.Id.ToString());
+
+                return process;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Could not start server process: " + e.Message);
+            }
         }
     }
 }
